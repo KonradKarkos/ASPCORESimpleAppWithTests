@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31005.135
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ASPCORESimpleAppWithTests", "ASPCORESimpleAppWithTests\ASPCORESimpleAppWithTests.csproj", "{0F95D5BC-D3E0-4698-8DE5-D64F6A497474}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ASPCORESimpleTest", "ASPCORESimpleTest\ASPCORESimpleTest.csproj", "{8619A1D0-0DBA-4570-89BA-88440F2EA551}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0F95D5BC-D3E0-4698-8DE5-D64F6A497474}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0F95D5BC-D3E0-4698-8DE5-D64F6A497474}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0F95D5BC-D3E0-4698-8DE5-D64F6A497474}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0F95D5BC-D3E0-4698-8DE5-D64F6A497474}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8619A1D0-0DBA-4570-89BA-88440F2EA551}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8619A1D0-0DBA-4570-89BA-88440F2EA551}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8619A1D0-0DBA-4570-89BA-88440F2EA551}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8619A1D0-0DBA-4570-89BA-88440F2EA551}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BD282091-9F5F-4296-8AD8-212923D1F88C}
+	EndGlobalSection
+EndGlobal
