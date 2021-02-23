@@ -17,14 +17,14 @@ namespace ASPCORESimpleTest
             FillDB();
         }
         protected DbContextOptions<OrderContext> ContextOptions { get; }
+        private Product AddedTestProduct;
         private void FillDB()
         {
-            Random rnd = new Random();
             using(var context = new OrderContext(ContextOptions))
             {
                 context.Database.EnsureDeleted();
                 context.Database.EnsureCreated();
-                Product addedProduct = context.Add(new Product()
+                AddedTestProduct = context.Add(new Product()
                 {
                     ProductName = "Chocolate",
                     Category = "Sweets",
@@ -36,25 +36,25 @@ namespace ASPCORESimpleTest
                 {
                     ClientName = "client1",
                     OrderTime = DateTime.Now,
-                    Amount = rnd.Next(2, 10),
+                    Amount = 1,
                     DeliveryAddress = "Wiœniowa",
-                    ProductId = addedProduct.Id
+                    ProductId = AddedTestProduct.Id
                 });
                 context.Add(new Order()
                 {
                     ClientName = "client2",
                     OrderTime = DateTime.Now,
-                    Amount = rnd.Next(2, 10),
+                    Amount = 2,
                     DeliveryAddress = "Brzoskwiniowa",
-                    ProductId = addedProduct.Id
+                    ProductId = AddedTestProduct.Id
                 });
                 context.Add(new Order()
                 {
                     ClientName = "client3",
                     OrderTime = DateTime.Now,
-                    Amount = rnd.Next(2, 10),
+                    Amount = 3,
                     DeliveryAddress = "Czekoladowa",
-                    ProductId = addedProduct.Id
+                    ProductId = AddedTestProduct.Id
                 });
                 context.SaveChanges();
             }
@@ -62,121 +62,96 @@ namespace ASPCORESimpleTest
         [Fact]
         public void CanGetAllOrders()
         {
-            using (var context = new OrderContext(ContextOptions))
-            {
-                var controller = new OrdersController(context);
+            List<Order> orders;
 
-                List<Order> orders = ((DbSet<Order>)controller.Get()).ToList();
-
-                Assert.Equal(3, orders.Count);
-                Assert.Equal("client1", orders[0].ClientName);
-                Assert.Equal("client2", orders[1].ClientName);
-                Assert.Equal("client3", orders[2].ClientName);
-            }
-        }
-        [Fact]
-        public void CanAddOrder()
-        {
-            Product addedProduct;
-            using (var context = new OrderContext(ContextOptions))
-            {
-                addedProduct = context.Add(new Product()
-                {
-                    ProductName = "Lolipop",
-                    Category = "Sweets",
-                    AmountInStock = 27,
-                    Price = 1.29,
-                }).Entity;
-                context.SaveChanges();
-            }
-            Order newOrder = new Order()
-            {
-                ClientName = "client4",
-                OrderTime = DateTime.Now,
-                Amount = 25,
-                DeliveryAddress = "Morelowa",
-                ProductId = addedProduct.Id
-            };
-            Order gottenOrder;
-            OkObjectResult postResult;
 
             using (var context = new OrderContext(ContextOptions))
             {
                 var controller = new OrdersController(context);
-                postResult = controller.Post(newOrder) as OkObjectResult;
-
-            }
-            using (var context = new OrderContext(ContextOptions))
-            {
-                gottenOrder = context.Set<Order>().Single(e => e.ClientName.Equals("client4"));
+                orders = ((DbSet<Order>)controller.Get()).ToList();
             }
 
-            Assert.NotNull(postResult);
-            Assert.Equal(newOrder, postResult.Value);
-            Assert.Equal(newOrder, gottenOrder);
+
+            Assert.Equal(3, orders.Count);
+            Assert.True(orders.FirstOrDefault(o => o.ClientName.Equals("client1")) != null);
+            Assert.True(orders.FirstOrDefault(o => o.ClientName.Equals("client2")) != null);
+            Assert.True(orders.FirstOrDefault(o => o.ClientName.Equals("client3")) != null);
         }
         [Theory]
-        [InlineData(4, 8, 4)]
-        [InlineData(12, 20, 8)]
-        [InlineData(20, 30, 10)]
-        [InlineData(-10, 25, 35)]
-        public void CanDeleteOrderAndReturnProducts(int betweenValue, int amountInStock, int orderedAmount)
+        [InlineData(4)]
+        [InlineData(8)]
+        [InlineData(10)]
+        [InlineData(35)]
+        public void CanPostOrderAndTakeProducts(int orderedAmount)
         {
-            Product firstStateProduct = new Product()
-            {
-                ProductName = "Carrot",
-                Category = "Vegetables",
-                AmountInStock = amountInStock,
-                Price = 1.99,
-            };
             Order newOrder = new Order()
             {
                 ClientName = "client4",
                 OrderTime = DateTime.Now,
                 Amount = orderedAmount,
-                DeliveryAddress = "Morelowa"
+                DeliveryAddress = "Morelowa",
+                ProductId = AddedTestProduct.Id
             };
-            Product betweenStateProduct = null;
-            Product secondStateProduct = null;
-            ActionResult orderPostResult = null;
+            Order gottenOrder;
+            OkObjectResult postResult;
+            int expectedInStockAmount;
+            int finalInStockAmount;
+            using (var context = new OrderContext(ContextOptions))
+            {
+                expectedInStockAmount = context.Set<Product>().First(p => p.Id == AddedTestProduct.Id).AmountInStock - orderedAmount;
+
+
+
+                var controller = new OrdersController(context);
+                postResult = controller.Post(newOrder) as OkObjectResult;
+            }
+            using (var context = new OrderContext(ContextOptions))
+            {
+                gottenOrder = context.Set<Order>().Single(e => e.ClientName.Equals("client4"));
+                finalInStockAmount = context.Set<Product>().First(p => p.Id == AddedTestProduct.Id).AmountInStock;
+            }
+
+
+
+            if (expectedInStockAmount < 0)
+            {
+                Assert.Null(postResult);
+            }
+            else
+            {
+                Assert.NotNull(postResult);
+                Assert.Equal(newOrder, postResult.Value);
+                Assert.Equal(newOrder, gottenOrder);
+                Assert.Equal(finalInStockAmount, expectedInStockAmount);
+            }
+        }
+        [Fact]
+        public void CanDeleteOrderAndReturnProducts()
+        {
+            Order toDeleteOrder;
+            int expectedInStockAmount;
+            int finalInStockAmount;
+            using (var context = new OrderContext(ContextOptions))
+            {
+                toDeleteOrder = context.Set<Order>().First();
+                expectedInStockAmount = context.Set<Product>().First(p => p.Id == toDeleteOrder.ProductId).AmountInStock + toDeleteOrder.Amount;
+            }
+            OkObjectResult orderDeleteResult = null;
+
+
 
             using (var context = new OrderContext(ContextOptions))
             {
                 OrdersController ordersController = new OrdersController(context);
-                ProductsController productsController = new ProductsController(context);
-                newOrder.ProductId = ((Product)((OkObjectResult)productsController.Post(firstStateProduct)).Value).Id;
-                orderPostResult = ordersController.Post(newOrder);
-            }
-            if (orderPostResult is OkObjectResult)
-            {
-                newOrder = ((OkObjectResult)orderPostResult).Value as Order;
-                using (var context = new OrderContext(ContextOptions))
-                {
-                    ProductsController productsController = new ProductsController(context);
-                    betweenStateProduct = productsController.Get(newOrder.ProductId);
-                }
-                using (var context = new OrderContext(ContextOptions))
-                {
-                    OrdersController ordersController = new OrdersController(context);
-                    ProductsController productsController = new ProductsController(context);
-                    ordersController.Delete(newOrder.Id);
-                    secondStateProduct = productsController.Get(newOrder.ProductId);
-                }
+                orderDeleteResult = ordersController.Delete(toDeleteOrder.Id) as OkObjectResult;
+                finalInStockAmount = context.Set<Product>().First(p => p.Id == toDeleteOrder.Id).AmountInStock;
             }
 
-            if (orderedAmount > amountInStock)
-            {
-                Assert.IsType<BadRequestResult>(orderPostResult);
-            }
-            else
-            {
-                Assert.NotNull(betweenStateProduct);
-                Assert.NotNull(secondStateProduct);
-                Assert.NotNull(orderPostResult);
-                Assert.Equal(orderedAmount, newOrder.Amount);
-                Assert.Equal(betweenValue, betweenStateProduct.AmountInStock);
-                Assert.Equal(amountInStock, secondStateProduct.AmountInStock);
-            }
+
+
+            Assert.NotNull(orderDeleteResult);
+            Assert.Equal(toDeleteOrder, orderDeleteResult.Value);
+            Assert.Equal(expectedInStockAmount, finalInStockAmount);
         }
     }
 }

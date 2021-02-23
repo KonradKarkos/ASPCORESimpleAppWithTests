@@ -10,7 +10,7 @@ namespace ASPCORESimpleAppWithTests.Models
         public int Id;
         public string ProductName { get; set; }
         public string Category { get; set; }
-        public int? AmountInStock { get; set; }
+        public int AmountInStock { get; set; }
         public double? Price { get; set; }
 
         public List<Order> Orders { get; set; }
@@ -24,8 +24,8 @@ namespace ASPCORESimpleAppWithTests.Models
         {
             return other != null &&
                    Id == other.Id &&
-                   ProductName == other.ProductName &&
-                   Category == other.Category &&
+                   ProductName.Equals(other.ProductName) &&
+                   Category.Equals(other.Category) &&
                    AmountInStock == other.AmountInStock &&
                    Price == other.Price;
         }

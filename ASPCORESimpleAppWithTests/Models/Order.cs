@@ -25,10 +25,10 @@ namespace ASPCORESimpleAppWithTests.Models
         {
             return other != null &&
                    Id == other.Id &&
-                   ClientName == other.ClientName &&
+                   ClientName.Equals(other.ClientName) &&
                    OrderTime == other.OrderTime &&
                    Amount == other.Amount &&
-                   DeliveryAddress == other.DeliveryAddress &&
+                   DeliveryAddress.Equals(other.DeliveryAddress) &&
                    ProductId == other.ProductId;
         }
 
